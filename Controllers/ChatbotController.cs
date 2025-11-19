@@ -15,13 +15,13 @@ namespace LukeChats_HacksApp.Controllers
     [Route("api/[controller]")]
     public class ChatbotController : ControllerBase
     {
-        private readonly string endpoint = DotNetEnv.Env.GetString("AZURE_OPENAI_ENDPOINT") ?? "";
-        private readonly string apiKey = DotNetEnv.Env.GetString("AZURE_OPENAI_KEY") ?? "";
-        private readonly string model = DotNetEnv.Env.GetString("AZURE_OPENAI_MODEL") ?? "model-router";
+        private readonly string endpoint = DotNetEnv.Env.GetString("AzureOpenAI_Endpoint") ?? "";
+        private readonly string apiKey = DotNetEnv.Env.GetString("AzureOpenAI_Key") ?? "";
+        private readonly string model = DotNetEnv.Env.GetString("AzureOpenAI_Model") ?? "model-router";
 
         private readonly AppDbContext _db;
-        private readonly string eventHubConnectionString = DotNetEnv.Env.GetString("EVENTHUB_CONNECTION_STRING") ?? "";
-        private readonly string eventHubName = DotNetEnv.Env.GetString("EVENTHUB_NAME") ?? "";
+        private readonly string eventHubConnectionString = DotNetEnv.Env.GetString("EventHub__ConnectionString") ?? "";
+        private readonly string eventHubName = DotNetEnv.Env.GetString("EventHub__Name") ?? "";
 
         public ChatbotController(AppDbContext db)
         {
