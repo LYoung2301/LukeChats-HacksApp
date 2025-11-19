@@ -1,0 +1,57 @@
+@page
+@{
+    ViewData["Title"] = "Chatbot";
+}
+
+<div id="chatbot-popup" style="display:none; position:fixed; bottom:30px; right:30px; width:350px; background:#fff; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:1000;">
+    <div style="padding:10px; border-bottom:1px solid #eee; font-weight:bold;">Chatbot Assistant</div>
+    <div id="chatbot-messages" style="height:250px; overflow-y:auto; padding:10px;"></div>
+    <div style="padding:10px; border-top:1px solid #eee;">
+        <input type="text" id="chatbot-input" style="width:80%;" placeholder="Type your message..." />
+        <button id="chatbot-send" type="button">Send</button>
+        <button id="chatbot-close" type="button" style="float:right;">Close</button>
+    </div>
+</div>
+<button id="open-chatbot" style="position:fixed; bottom:30px; right:30px; z-index:999;">Chat with us!</button>
+
+@section Scripts {
+    <script>
+        const popup = document.getElementById('chatbot-popup');
+        const openBtn = document.getElementById('open-chatbot');
+        const closeBtn = document.getElementById('chatbot-close');
+        const sendBtn = document.getElementById('chatbot-send');
+        const input = document.getElementById('chatbot-input');
+        const messages = document.getElementById('chatbot-messages');
+
+        openBtn.onclick = () => { popup.style.display = 'block'; openBtn.style.display = 'none'; };
+        closeBtn.onclick = () => { popup.style.display = 'none'; openBtn.style.display = 'block'; };
+        sendBtn.onclick = sendMessage;
+        input.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(); });
+
+        function appendMessage(role, text) {
+            const div = document.createElement('div');
+            div.innerHTML = `<b>${role}:</b> ${text}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userText = input.value.trim();
+            if (!userText) return;
+            appendMessage('You', userText);
+            input.value = '';
+            fetch('/api/chatbot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userText })
+            })
+            .then(res => res.json())
+            .then(data => {
+                appendMessage('Bot', data.reply);
+            })
+            .catch(() => {
+                appendMessage('Bot', 'Sorry, something went wrong.');
+            });
+        }
+    </script>
+}
