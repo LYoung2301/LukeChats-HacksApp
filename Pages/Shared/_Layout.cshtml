@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </head>
-<body>
+<body style="min-height:100vh; display:flex; flex-direction:column;">
     <header class="site-header">
         <nav class="navbar navbar-expand-sm navbar-light">
             <div class="container d-flex align-items-center justify-content-between">
@@ -47,13 +47,13 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container flex-grow-1 d-flex flex-column">
+        <main role="main" class="pb-3 flex-grow-1">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="footer text-muted py-4">
+    <footer class="footer text-muted py-4 mt-auto">
         <div class="container text-center">
             &copy; 2025 RetailMonolith &mdash; <a asp-area="" asp-page="/Privacy" style="color:#86868b;">Privacy Policy</a>
         </div>

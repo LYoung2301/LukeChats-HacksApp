@@ -17,7 +17,7 @@ else
     <p>Status: <strong>@Model.Order.Status</strong></p>
     <p>Date: @Model.Order.CreatedUtc.ToLocalTime()</p>
 
-    <table class="table mt-3">
+    <table class="table mt-3" style="border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow:hidden;">
         <thead>
             <tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
         </thead>
@@ -34,6 +34,6 @@ else
         </tbody>
     </table>
 
-    <h4>Total: @Model.Order.Total.ToString("C")</h4>
-    <a class="btn btn-primary mt-3" href="/Products">Continue Shopping</a>
+    <h4 style="font-size:1.18rem; font-weight:600; color:#1d1d1f;">Total: @Model.Order.Total.ToString("C")</h4>
+    <a class="btn btn-primary mt-3" href="/Products" style="font-size:1.08rem; font-weight:500; border-radius:12px; min-width:180px;">Continue Shopping</a>
 }
