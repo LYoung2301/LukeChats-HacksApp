@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Producer;
 
 namespace LukeChats_HacksApp.Controllers
 {
@@ -13,11 +15,13 @@ namespace LukeChats_HacksApp.Controllers
     [Route("api/[controller]")]
     public class ChatbotController : ControllerBase
     {
-        private readonly string endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? "";
-        private readonly string apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY") ?? "";
-        private readonly string model = Environment.GetEnvironmentVariable("AZURE_OPENAI_MODEL") ?? "model-router";
+        private readonly string endpoint = DotNetEnv.Env.GetString("AZURE_OPENAI_ENDPOINT") ?? "";
+        private readonly string apiKey = DotNetEnv.Env.GetString("AZURE_OPENAI_KEY") ?? "";
+        private readonly string model = DotNetEnv.Env.GetString("AZURE_OPENAI_MODEL") ?? "model-router";
 
         private readonly AppDbContext _db;
+        private readonly string eventHubConnectionString = DotNetEnv.Env.GetString("EVENTHUB_CONNECTION_STRING") ?? "";
+        private readonly string eventHubName = DotNetEnv.Env.GetString("EVENTHUB_NAME") ?? "";
 
         public ChatbotController(AppDbContext db)
         {
@@ -29,6 +33,9 @@ namespace LukeChats_HacksApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(request?.Message))
                 return BadRequest(new { reply = "Message cannot be empty." });
+
+            // Key messages by user: use a UserId from request, or fallback to a GUID if not provided
+            var userId = request.UserId ?? Guid.NewGuid().ToString();
 
             // Get current products
             var products = await _db.Products.Where(p => p.IsActive).ToListAsync();
@@ -62,12 +69,35 @@ namespace LukeChats_HacksApp.Controllers
                 .GetProperty("message")
                 .GetProperty("content")
                 .GetString();
+
+            // Send message and response to Event Hub
+            await SendToEventHubAsync(userId, request.Message, reply);
+
             return Ok(new { reply });
+        }
+
+        private async Task SendToEventHubAsync(string userId, string userMessage, string botReply)
+        {
+            if (string.IsNullOrWhiteSpace(eventHubConnectionString) || string.IsNullOrWhiteSpace(eventHubName))
+                return;
+            var eventData = new
+            {
+                UserId = userId,
+                Message = userMessage,
+                Reply = botReply,
+                Timestamp = DateTime.UtcNow
+            };
+            var eventJson = JsonSerializer.Serialize(eventData);
+            await using var producerClient = new EventHubProducerClient(eventHubConnectionString, eventHubName);
+            using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
+            eventBatch.TryAdd(new EventData(Encoding.UTF8.GetBytes(eventJson)));
+            await producerClient.SendAsync(eventBatch);
         }
 
         public class ChatRequest
         {
             public string? Message { get; set; }
+            public string? UserId { get; set; } // Used for event stream keying
         }
     }
 }
